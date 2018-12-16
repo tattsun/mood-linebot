@@ -95,9 +95,10 @@ func (b *Bot) Chart(w http.ResponseWriter, req *http.Request) {
 
 	i := 0
 	for _, mood := range moods {
-		date := mood.Timestamp.Format("20060102")
+		timestamp := mood.Timestamp.In(time.FixedZone("UTF+9", 9*60*60))
+		date := timestamp.Format("20060102")
 
-		log.Printf("%s: %s", date, mood.Timestamp)
+		log.Printf("%s: %s", date, timestamp)
 
 		if _, ok := mi[date]; ok {
 			continue
