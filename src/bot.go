@@ -90,24 +90,70 @@ func (b *Bot) Chart(w http.ResponseWriter, req *http.Request) {
 		fmt.Fprint(w, err)
 	}
 
-	xs := make([]time.Time, len(moods))
-	for i, mood := range moods {
-		xs[i] = mood.Timestamp
+	mi := make(map[string]int)
+	xs := make([]time.Time, 0)
+
+	i := 0
+	for _, mood := range moods {
+		date := mood.Timestamp.Format("20060102")
+
+		if _, ok := mi[date]; ok {
+			continue
+		}
+
+		mi[date] = i
+		ts := time.Date(mood.Timestamp.Year(),
+			mood.Timestamp.Month(),
+			mood.Timestamp.Day(), 0, 0, 0, 0, time.UTC)
+		xs = append(xs, ts)
+		i++
 	}
 
-	ys := make([]float64, len(moods))
-	for i, mood := range moods {
-		ys[i] = float64(mood.Mood)
+	max := make([]float64, len(mi))
+	min := make([]float64, len(mi))
+	sum := make([]float64, len(mi))
+	cnt := make([]float64, len(mi))
+	for i := range min {
+		min[i] = 999
+	}
+	for _, mood := range moods {
+		i := mi[mood.Timestamp.Format("20060102")]
+
+		m := float64(mood.Mood)
+		if max[i] < m {
+			max[i] = m
+		}
+		if min[i] > m {
+			min[i] = m
+		}
+		sum[i] += m
+		cnt[i]++
+	}
+
+	avg := make([]float64, len(mi))
+	for i, s := range sum {
+		avg[i] = s / cnt[i]
 	}
 
 	graph := chart.Chart{
 		XAxis: chart.XAxis{
 			Style: chart.StyleShow(),
 		},
+		YAxis: chart.YAxis{
+			Style: chart.StyleShow(),
+		},
 		Series: []chart.Series{
 			chart.TimeSeries{
 				XValues: xs,
-				YValues: ys,
+				YValues: max,
+			},
+			chart.TimeSeries{
+				XValues: xs,
+				YValues: min,
+			},
+			chart.TimeSeries{
+				XValues: xs,
+				YValues: avg,
 			},
 		},
 	}
