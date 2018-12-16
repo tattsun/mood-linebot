@@ -29,3 +29,11 @@ func NewMoodRepository(db *mgo.Database) (*MoodRepository, error) {
 func (r *MoodRepository) Create(m *Mood) error {
 	return r.col.Insert(m)
 }
+
+func (r *MoodRepository) FindAll() ([]Mood, error) {
+	var moods []Mood
+	if err := r.col.Find(nil).All(&moods); err != nil {
+		return nil, err
+	}
+	return moods, nil
+}

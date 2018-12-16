@@ -13,6 +13,7 @@ import (
 	"gopkg.in/mgo.v2"
 
 	"github.com/tattsun/mood-linebot/src/model"
+	chart "github.com/wcharczuk/go-chart"
 
 	"github.com/line/line-bot-sdk-go/linebot"
 	"github.com/pkg/errors"
@@ -77,8 +78,42 @@ func (b *Bot) RunServer() error {
 			b.handleEvent(event)
 		}
 	})
+	http.HandleFunc("/chart", b.Chart)
 
 	return http.ListenAndServe(":"+b.Config.Port, nil)
+}
+
+func (b *Bot) Chart(w http.ResponseWriter, req *http.Request) {
+	moods, err := b.moodRepository.FindAll()
+	if err != nil {
+		w.WriteHeader(500)
+		fmt.Fprint(w, err)
+	}
+
+	xs := make([]time.Time, len(moods))
+	for i, mood := range moods {
+		xs[i] = mood.Timestamp
+	}
+
+	ys := make([]float64, len(moods))
+	for i, mood := range moods {
+		ys[i] = float64(mood.Mood)
+	}
+
+	graph := chart.Chart{
+		XAxis: chart.XAxis{
+			Style: chart.StyleShow(),
+		},
+		Series: []chart.Series{
+			chart.TimeSeries{
+				XValues: xs,
+				YValues: ys,
+			},
+		},
+	}
+
+	w.Header().Set("Content-Type", "image/png")
+	graph.Render(chart.PNG, w)
 }
 
 func (b *Bot) SendFeelingCheck() error {
