@@ -16,6 +16,8 @@ func envvar(key string) string {
 }
 
 func readConfig() *src.Config {
+	apiUserID := envvar("API_USER_ID")
+	apiPassword := envvar("API_PASSWORD")
 	channelSecret := envvar("LINE_CHANNEL_SECRET")
 	channelToken := envvar("LINE_CHANNEL_TOKEN")
 	port := envvar("PORT")
@@ -23,7 +25,9 @@ func readConfig() *src.Config {
 	mongoDatabase := envvar("MONGODB_DATABASE")
 
 	config := src.Config{
-		Port: port,
+		APIUserID:   apiUserID,
+		APIPassword: apiPassword,
+		Port:        port,
 		LINE: src.LINEConfig{
 			ChannelSecret: channelSecret,
 			ChannelToken:  channelToken,

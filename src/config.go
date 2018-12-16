@@ -1,6 +1,9 @@
 package src
 
 type Config struct {
+	APIUserID   string
+	APIPassword string
+
 	Port string
 	DB   DBConfig
 	LINE LINEConfig

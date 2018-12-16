@@ -84,6 +84,13 @@ func (b *Bot) RunServer() error {
 }
 
 func (b *Bot) Chart(w http.ResponseWriter, req *http.Request) {
+	user, pass, ok := req.BasicAuth()
+	if ok == false || user != b.Config.APIUserID || pass != b.Config.APIPassword {
+		w.Header().Set("WWW-Authenticate", `Basic realm="auth required"`)
+		http.Error(w, "need authentication", http.StatusUnauthorized)
+		return
+	}
+
 	moods, err := b.moodRepository.FindAll()
 	if err != nil {
 		w.WriteHeader(500)
